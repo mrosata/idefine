@@ -1,0 +1,25 @@
+{
+  "name": "idefine",
+  "version": "0.1.0",
+  "description": "Define modules simple time",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: You pass, wink wink*\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mrosata/idefine"
+  },
+  "keywords": [
+    "idefine",
+    "define",
+    "modules",
+    "namespace",
+    "light"
+  ],
+  "author": "Michael Rosata",
+  "license": "GPLv2",
+  "bugs": {
+    "url": "https://github.com/mrosata/idefine/issues"
+  }
+}
