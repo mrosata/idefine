@@ -1,21 +1,32 @@
 /*
- * idefine namespace module
- *
- * Pass in arrays with strings of modules you would like to use,
- * they are automatically mapped to a variable with the modules name
- *
- * Strings passed in also become variables with same name as the
- * module that they represent
- *
- * Objects are unique in that you must specifically call require,
- * this allows you to map modules to variables with different names
- * or to map function returns to global variables, or any value to
- * any variable
- *
- */
+idefine namespace module
+
+Copyright (c) 2015 Michael Rosata mike@onethingsimple.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+// Going to use path to handle path resolution
+var path = require('path')
 
 module.exports = function ideclare () {
-  var context = this;
+  var context = this
   Array.prototype.forEach.call(arguments, function (arg) {
     var prop;
     if (arg.constructor === Array) {
@@ -25,27 +36,33 @@ module.exports = function ideclare () {
           if (typeof item === 'string') {
             var items = item.split('=')
             if (items.length == 1) {
-              if (item.indexOf('.') === 0)
-                context[item] = require('../' + item)
-              else
-                context[item] = require(item)
-            } else {
-              var mod = items.splice(0,1)[0].toString()
-              context[mod] = require(mod)
-              for (var i=0;i<items.length;i++)
-                context[items[i]] = context[mod]();
+              var itemName = item.replace(/-([a-zA-Z])?/, function (m) {
+                return m[1] == null ? '' : m[1].toUpperCase()
+              })
+              context[itemName] = require(item)
+            } else if (items.length > 1) {
+              var app = items.shift().toString()
+              var mod = items.shift().toString()
+              var modName = mod.replace(/-([a-zA-Z])?/, function (m) {
+                return m[1] == null ? '' : m[1].toUpperCase()
+              })
+              context[modName] = require(mod)
+              context[app] = context[modName].apply(context, items)
             }
           }
-        });
-      } catch (err) { console.error('Hey Buddy, you mess up your requires!', err) }
+        }) /// end forEach
+      } catch (err) { console.error('Hey Buddy, you mess up your requires!! %s', err.message) }
+      
     } else if (typeof arg === 'object')  {
       for (prop in arg) {
-        context[prop] = arg[prop]
+        var propName;
+        if (arg[prop].toString().indexOf('/') !== -1 || arg[prop].toString().indexOf('.js') !== -1)
+          context[prop] = require(path.normalize('../../' + arg[prop]))
+        else
+          context[prop] = require(arg[prop])
       }
-    } else if (typeof arg === 'string') {
-      if (arg.indexOf('.') === 0 )
-        context[arg] = require('../'+arg)
-      else
+    } else {
+      if (typeof arg === 'string')
         context[arg] = require(arg)
     }
   })
